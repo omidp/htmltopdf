@@ -1,0 +1,68 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.omidbiz</groupId>
+  <artifactId>htmltopdf</artifactId>
+  <version>0.0.1</version>
+  <packaging>jar</packaging>
+
+  <name>htmltopdf</name>
+  <url>http://maven.apache.org</url>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <openhtml.version>0.0.1-RC5</openhtml.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.8.1</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+        <!-- ALWAYS required. -->
+        <groupId>com.openhtmltopdf</groupId>
+        <artifactId>openhtmltopdf-core</artifactId>
+        <version>${openhtml.version}</version>
+    </dependency>
+
+    <dependency>
+        <!-- Required for PDF output. -->
+        <groupId>com.openhtmltopdf</groupId>
+        <artifactId>openhtmltopdf-pdfbox</artifactId>
+        <version>${openhtml.version}</version>
+    </dependency>
+
+    <dependency>
+        <!-- Optional, leave out if you do not need right-to-left or bi-directional text support. -->
+        <groupId>com.openhtmltopdf</groupId>
+        <artifactId>openhtmltopdf-rtl-support</artifactId>
+        <version>${openhtml.version}</version>
+    </dependency>
+
+    <dependency>
+        <!-- Optional, leave out if you do not need HTML5 parsing support. -->
+        <groupId>com.openhtmltopdf</groupId>
+        <artifactId>openhtmltopdf-jsoup-dom-converter</artifactId>
+        <version>${openhtml.version}</version>
+    </dependency>
+
+    <dependency>
+        <!-- Optional, leave out if you do not need logging via slf4j. -->
+        <groupId>com.openhtmltopdf</groupId>
+        <artifactId>openhtmltopdf-slf4j</artifactId>
+        <version>${openhtml.version}</version>
+    </dependency>
+
+    <dependency>
+        <!-- Optional, leave out if you do not need logging via log4j. -->
+        <groupId>com.openhtmltopdf</groupId>
+        <artifactId>openhtmltopdf-log4j</artifactId>
+        <version>${openhtml.version}</version>
+    </dependency>
+  </dependencies>
+</project>
