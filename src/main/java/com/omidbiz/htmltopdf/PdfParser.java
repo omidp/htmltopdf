@@ -27,7 +27,7 @@ public class PdfParser
             }
         }
         RootNode root = proc.parseMarkdown(sb.toString().toCharArray());
-        ToPdfSerializer serializer = new ToPdfSerializer();
+        ToPdfSerializer serializer = new ToPdfSerializer(sb.toString());
         serializer.visit(root);
 //        ToHtmlSerializer html = new ToHtmlSerializer(new LinkRenderer());
 //        html.visit(root);

@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.pegdown.LinkRenderer;
 import org.pegdown.ast.AbbreviationNode;
@@ -51,11 +53,13 @@ import org.pegdown.ast.Visitor;
 import org.pegdown.ast.WikiLinkNode;
 
 import com.lowagie.text.Anchor;
+import com.lowagie.text.Chunk;
 import com.lowagie.text.Document;
 import com.lowagie.text.DocumentException;
 import com.lowagie.text.Element;
 import com.lowagie.text.Font;
 import com.lowagie.text.Paragraph;
+import com.lowagie.text.Phrase;
 import com.lowagie.text.pdf.BaseFont;
 import com.lowagie.text.pdf.ColumnText;
 import com.lowagie.text.pdf.MultiColumnText;
@@ -72,19 +76,26 @@ public class ToPdfSerializer implements Visitor
     Font font;
     private Font defaultFont;
     protected LinkRenderer linkRenderer;
+    List<Chunk> pars;
+    private boolean strong;
+    private String orginalText;
 
-    public ToPdfSerializer()
+    public ToPdfSerializer(String origText)
     {
         try
         {
             Path path = Paths.get(ToPdfSerializer.class.getResource("/tahoma.ttf").toURI());
             bf = BaseFont.createFont(path.toFile().getAbsolutePath(), BaseFont.IDENTITY_H, true);
             font = new Font(bf, 12);
-            defaultFont = new Font(bf, 12);
+            defaultFont = new Font(bf, 10);
+            defaultFont.setStyle(Font.NORMAL);
+            defaultFont.setSize(12);
             linkRenderer = new LinkRenderer();
             pdfWriter = PdfWriter.getInstance(document, new FileOutputStream(new File("/home/omidp/1.pdf")));
             pdfWriter.setRunDirection(PdfWriter.RUN_DIRECTION_RTL);
             document.open();
+            pars = new ArrayList<>();
+            this.orginalText = origText;
         }
         catch (FileNotFoundException e)
         {
@@ -125,44 +136,38 @@ public class ToPdfSerializer implements Visitor
 
     public void visit(BlockQuoteNode node)
     {
-        // TODO Auto-generated method stub
-
+        System.out.println("BlockQuoteNode");
     }
 
     public void visit(BulletListNode node)
     {
-        // TODO Auto-generated method stub
+        System.out.println("BulletListNode");
 
     }
 
     public void visit(CodeNode node)
     {
-        // TODO Auto-generated method stub
-
+        System.out.println("CodeNode");
     }
 
     public void visit(DefinitionListNode node)
     {
-        // TODO Auto-generated method stub
-
+        System.out.println("DefinitionListNode");
     }
 
     public void visit(DefinitionNode node)
     {
-        // TODO Auto-generated method stub
-
+        System.out.println("DefinitionNode");
     }
 
     public void visit(DefinitionTermNode node)
     {
-        // TODO Auto-generated method stub
-
+        System.out.println("DefinitionTermNode");
     }
 
     public void visit(ExpImageNode node)
     {
-        // TODO Auto-generated method stub
-
+        System.out.println("ExpImageNode");
     }
 
     public void visit(ExpLinkNode node)
@@ -183,32 +188,27 @@ public class ToPdfSerializer implements Visitor
 
     public void visit(HtmlBlockNode node)
     {
-        // TODO Auto-generated method stub
-
+        System.out.println("HtmlBlockNode");
     }
 
     public void visit(InlineHtmlNode node)
     {
-        // TODO Auto-generated method stub
-
+        System.out.println("InlineHtmlNode");
     }
 
     public void visit(ListItemNode node)
     {
-        // TODO Auto-generated method stub
-
+        System.out.println("ListItemNode");
     }
 
     public void visit(MailLinkNode node)
     {
-        // TODO Auto-generated method stub
-
+        System.out.println("MailLinkNode");
     }
 
     public void visit(OrderedListNode node)
     {
-        // TODO Auto-generated method stub
-
+        System.out.println("OrderedListNode");
     }
 
     public void visit(ParaNode node)
@@ -219,20 +219,17 @@ public class ToPdfSerializer implements Visitor
 
     public void visit(QuotedNode node)
     {
-        // TODO Auto-generated method stub
-
+        System.out.println("QuotedNode");
     }
 
     public void visit(ReferenceNode node)
     {
-        // TODO Auto-generated method stub
-
+        System.out.println("ReferenceNode");
     }
 
     public void visit(RefImageNode node)
     {
-        // TODO Auto-generated method stub
-
+        System.out.println("RefImageNode");
     }
 
     public void visit(RefLinkNode node)
@@ -248,9 +245,11 @@ public class ToPdfSerializer implements Visitor
             // visitChildren(refNode);
             // references.put(normalize(printer.getString()), refNode);
             // printer.clear();
+            System.out.println("refNode");
         }
         for (AbbreviationNode abbrNode : node.getAbbreviations())
         {
+            System.out.println("abbrNode");
             // visitChildren(abbrNode);
             // String abbr = printer.getString();
             // printer.clear();
@@ -260,6 +259,34 @@ public class ToPdfSerializer implements Visitor
             // printer.clear();
         }
         visitChildren(node);
+        
+        //this is end
+        try
+        {
+            MultiColumnText mct = new MultiColumnText();        
+            mct.setAlignment(Element.ALIGN_LEFT);
+            mct.setRunDirection(PdfWriter.RUN_DIRECTION_RTL);
+            mct.setColumnsRightToLeft(true);
+            mct.addSimpleColumn(document.left(), document.right());
+            Paragraph parag = new Paragraph();
+            parag.setFont(font);
+            int i =0;
+            for (Chunk c : pars)
+            {
+                if(i == 1)
+                    parag.add(Chunk.NEWLINE);
+                parag.add(c);
+                i++;
+            }
+            mct.addElement(parag);
+            document.add(mct);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        
+        //
         document.close();
 
     }
@@ -269,6 +296,7 @@ public class ToPdfSerializer implements Visitor
     {
         for (Node child : node.getChildren())
         {
+            resetFont();
             child.accept(this);
         }
     }
@@ -285,92 +313,77 @@ public class ToPdfSerializer implements Visitor
 
     public void visit(StrikeNode node)
     {
-        // TODO Auto-generated method stub
-
+        System.out.println("StrikeNode");
     }
 
     public void visit(StrongEmphSuperNode node)
     {
         System.out.println("StrongEmphSuperNode");
+      //  font.setStyle(Font.BOLD);
+        System.out.println(node.getEndIndex());
+        System.out.println(orginalText.charAt(node.getEndIndex()));
+        strong=true;
+        visitChildren(node);
     }
 
     public void visit(TableBodyNode node)
     {
-        // TODO Auto-generated method stub
-
+        System.out.println("TableBodyNode");
     }
 
     public void visit(TableCaptionNode node)
     {
-        // TODO Auto-generated method stub
-
+        System.out.println("TableCaptionNode");
     }
 
     public void visit(TableCellNode node)
     {
-        // TODO Auto-generated method stub
-
+        System.out.println("TableCellNode");
     }
 
     public void visit(TableColumnNode node)
     {
-        // TODO Auto-generated method stub
-
+        System.out.println("TableColumnNode");
     }
 
     public void visit(TableHeaderNode node)
     {
-        // TODO Auto-generated method stub
-
+        System.out.println("TableHeaderNode");
     }
 
     public void visit(TableNode node)
     {
-        // TODO Auto-generated method stub
-
+        System.out.println("TableNode");
     }
 
     public void visit(TableRowNode node)
     {
-        // TODO Auto-generated method stub
-
+        System.out.println("TableRowNode");
     }
 
     public void visit(VerbatimNode node)
     {
-        // TODO Auto-generated method stub
-
+        System.out.println("VerbatimNode");
     }
 
     public void visit(WikiLinkNode node)
     {
-        // TODO Auto-generated method stub
         System.out.println("WikiLinkNode");
+        
     }
 
     public void visit(TextNode node)
     {
         System.out.println("TEXTNODE");
-        System.out.println(node.getText());
-        MultiColumnText mct = new MultiColumnText();        
-        mct.setAlignment(Element.ALIGN_LEFT);
-        mct.setRunDirection(PdfWriter.RUN_DIRECTION_RTL);
-        mct.setColumnsRightToLeft(true);
-        Paragraph p = new Paragraph(node.getText(), font);
+//        System.out.println(node.getText());
+        if(strong)
+            font.setStyle(Font.BOLD);
+        Phrase phrase = new Phrase(node.getText(), font);
+        Paragraph p = new Paragraph(phrase);
         p.setAlignment(Element.ALIGN_LEFT);
-        
-        try
-        {
-            
-            mct.addSimpleColumn(document.left(), document.right());
-            mct.addElement(p);
-            document.add(mct);
-            resetFont();
-        }
-        catch (DocumentException e)
-        {
-            e.printStackTrace();
-        }
+        pars.add(new Chunk(node.getText()));
+        resetFont();
+        strong = false;
     }
 
     public void visit(SuperNode node)
@@ -385,7 +398,10 @@ public class ToPdfSerializer implements Visitor
     
     public void resetFont()
     {
-        font = defaultFont;
+//        System.out.println("resetfont");
+        font = new Font(bf, 10);
+        font.setStyle(Font.NORMAL);
+        font.setSize(10);
     }
 
 }
