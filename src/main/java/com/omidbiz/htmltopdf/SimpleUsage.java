@@ -9,7 +9,7 @@ import com.openhtmltopdf.bidi.support.ICUBidiSplitter;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder.TextDirection;
 
-
+@Deprecated
 public class SimpleUsage
 {
     public static void main(String[] args)
