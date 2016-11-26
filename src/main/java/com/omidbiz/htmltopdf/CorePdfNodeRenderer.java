@@ -1,7 +1,16 @@
 package com.omidbiz.htmltopdf;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.commonmark.node.AbstractVisitor;
@@ -28,8 +37,61 @@ import org.commonmark.node.Text;
 import org.commonmark.node.ThematicBreak;
 import org.commonmark.renderer.NodeRenderer;
 
+import com.lowagie.text.Chunk;
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.Element;
+import com.lowagie.text.Font;
+import com.lowagie.text.pdf.BaseFont;
+import com.lowagie.text.pdf.MultiColumnText;
+import com.lowagie.text.pdf.PdfWriter;
+
 public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer 
 {
+
+    com.lowagie.text.Document doc = new com.lowagie.text.Document();
+
+    PdfWriter pdfWriter;
+    BaseFont bf;
+    Font font;
+    private Font defaultFont;
+    
+    public CorePdfNodeRenderer()
+    {
+        try
+        {
+            Path path = Paths.get(ToPdfSerializer.class.getResource("/tahoma.ttf").toURI());
+            bf = BaseFont.createFont(path.toFile().getAbsolutePath(), BaseFont.IDENTITY_H, true);
+            font = new Font(bf, 12);
+            defaultFont = new Font(bf, 10);
+            defaultFont.setStyle(Font.NORMAL);
+            defaultFont.setSize(12);
+            
+            pdfWriter = PdfWriter.getInstance(doc, new FileOutputStream(new File("/home/omidp/1.pdf")));
+            pdfWriter.setRunDirection(PdfWriter.RUN_DIRECTION_RTL);
+            doc.open();
+            
+        }
+        catch (FileNotFoundException e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        catch (DocumentException e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        catch (URISyntaxException e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        catch (IOException e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
 
     @Override
     public Set<Class<? extends Node>> getNodeTypes()
@@ -68,6 +130,28 @@ public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
     public void visit(Document document) {
         // No rendering itself
         visitChildren(document);
+        for (com.lowagie.text.Paragraph item : pars)
+        {
+            MultiColumnText mct = new MultiColumnText();        
+            mct.setAlignment(Element.ALIGN_LEFT);
+            mct.setRunDirection(PdfWriter.RUN_DIRECTION_RTL);
+            mct.setColumnsRightToLeft(true);
+            mct.addSimpleColumn(doc.left(), doc.right());
+            item.setFont(font);
+            item.setAlignment(Element.ALIGN_LEFT);
+            try
+            {
+                mct.addElement(item);
+                doc.add(mct);
+            }
+            catch (DocumentException e)
+            {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        //TODO:document has no page
+        doc.close();
     }
 
     @Override
@@ -78,7 +162,9 @@ public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
     @Override
     public void visit(Paragraph paragraph) {
         System.out.println("PARAGRAPH");
+        par = new com.lowagie.text.Paragraph();
         visitChildren(paragraph);
+        pars.add(par);
     }
     
     @Override
@@ -90,19 +176,35 @@ public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
     @Override
     public void visit(StrongEmphasis strongEmphasis) {
         System.out.println("strongemph");
-        visitChildren(strongEmphasis);
-        
+        this.font = new Font(bf);
+        this.font.setSize(12);
+        this.font.setStyle(Font.BOLD);
+        visitChildren(strongEmphasis);        
     }
 
     @Override
     public void visit(Text text) {
         System.out.println("text");
-        
+        System.out.println(font.getStyle());
+        System.out.println(text.getLiteral());
+        Chunk c = new Chunk(text.getLiteral(), font);
+//        c.setFont(font);
+        par.add(c);
+        resetFont();
     }
     
+    private void resetFont()
+    {
+        this.font =new Font(bf); 
+        this.font.setSize(12);
+        this.font.setStyle(-1);
+//        c.setFont(font);
+    }
+
     @Override
     public void visit(SoftLineBreak softLineBreak) {
         System.out.println("SOFTLINEBR");
+        par.add(Chunk.NEWLINE);
     }
 
     @Override
@@ -110,5 +212,11 @@ public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
      System.out.println("HARDLINEBR");
     }
 
+    
+    
+    ///itext
+    List<com.lowagie.text.Paragraph> pars = new ArrayList<>();
+    com.lowagie.text.Paragraph par;
+//     List<Chunk> chunks = new ArrayList<>();
 
 }
