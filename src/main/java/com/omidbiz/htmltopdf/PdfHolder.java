@@ -6,7 +6,12 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
+import com.lowagie.text.Chunk;
 import com.lowagie.text.Document;
 import com.lowagie.text.DocumentException;
 import com.lowagie.text.Element;
@@ -16,37 +21,31 @@ import com.lowagie.text.pdf.BaseFont;
 import com.lowagie.text.pdf.MultiColumnText;
 import com.lowagie.text.pdf.PdfWriter;
 
+/**
+ * @author Omid Pourhadi
+ *         <p>
+ *         this class is immutable
+ *         </p>
+ */
 public class PdfHolder
 {
 
     public static final int DEFAULT_FONT_SIZE = 12;
-    
+
+    private final Document document;
+    private final PdfWriter pdfWriter;
+    private final BaseFont bf;
     private MultiColumnText multiColumnText;
-    private Paragraph paragraph;
-    private Font font;
-    private Document document;
-    private PdfWriter pdfWriter;
-    private BaseFont bf;
-    
+    private List<ChunkHolder> chunks = new ArrayList<>(0);
 
-    public PdfHolder()
+    public PdfHolder() throws URISyntaxException, DocumentException, IOException
     {
-        Path path;
-        try
-        {
-            document = new Document();
-            path = Paths.get(ToPdfSerializer.class.getResource("/tahoma.ttf").toURI());
-            bf = BaseFont.createFont(path.toFile().getAbsolutePath(), BaseFont.IDENTITY_H, true);
-            font = new Font(bf, DEFAULT_FONT_SIZE);
-            pdfWriter = PdfWriter.getInstance(document, new FileOutputStream(new File("/home/omidp/1.pdf")));
-            pdfWriter.setRunDirection(PdfWriter.RUN_DIRECTION_RTL);
-            // document.open();
+        document = new Document();
 
-        }
-        catch (DocumentException | IOException | URISyntaxException e)
-        {
-            e.printStackTrace();
-        }
+        Path path = Paths.get(ToPdfSerializer.class.getResource("/tahoma.ttf").toURI());
+        bf = BaseFont.createFont(path.toFile().getAbsolutePath(), BaseFont.IDENTITY_H, true);
+        pdfWriter = PdfWriter.getInstance(document, new FileOutputStream(new File("/home/omidp/1.pdf")));
+        pdfWriter.setRunDirection(PdfWriter.RUN_DIRECTION_RTL);
     }
 
     public void open()
@@ -59,10 +58,34 @@ public class PdfHolder
         document.close();
     }
 
+    public Font getFont()
+    {
+        return new Font(bf, DEFAULT_FONT_SIZE);
+    }
+
+    public PdfWriter getPdfWriter()
+    {
+        return pdfWriter;
+    }
+
+    public Paragraph getParagraph()
+    {
+        Paragraph p = new Paragraph();
+        p.setFont(getFont());
+        p.setAlignment(Element.ALIGN_LEFT);
+        return p;
+    }
+
+    public Chunk getChunk()
+    {
+        Chunk c = new Chunk();
+        c.setFont(getFont());
+        return c;
+    }
+
     public MultiColumnText getMultiColumnText()
     {
-        if (multiColumnText == null)
-            multiColumnText = new MultiColumnText();
+        multiColumnText = new MultiColumnText();
         multiColumnText.setAlignment(Element.ALIGN_LEFT);
         multiColumnText.setRunDirection(PdfWriter.RUN_DIRECTION_RTL);
         multiColumnText.setColumnsRightToLeft(true);
@@ -70,57 +93,85 @@ public class PdfHolder
         return multiColumnText;
     }
 
-    public MultiColumnText getMultiColumnText(boolean createNew)
+    public MultiColumnText addToColumnText(Element elm)
     {
-        if (createNew)
-            multiColumnText = new MultiColumnText();
-        return getMultiColumnText();
-    }
-
-    public Paragraph getParagraph()
-    {
-        if (paragraph == null)
-            paragraph = new Paragraph();
-        paragraph.setFont(getFont());
-        paragraph.setAlignment(Element.ALIGN_LEFT);
-        return paragraph;
-    }
-
-    public Paragraph getParagraph(boolean createNew)
-    {
-        if (createNew)
-            paragraph = new Paragraph();
-        return getParagraph();
-    }
-
-    public Font getFont()
-    {
-        return font;
-    }
-
-    public PdfWriter getPdfWriter()
-    {
-        return pdfWriter;
-    }
-    
-    public void addToDocument(Element elm)
-    {
+        MultiColumnText mt = getMultiColumnText();
         try
-        {            
-            multiColumnText.addElement(elm);
-            document.add(multiColumnText);
+        {
+            mt.addElement(elm);
         }
         catch (DocumentException e)
         {
-            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return mt;
+    }
+
+    public void addToDocument(Element elm)
+    {
+        try
+        {
+            document.add(elm);
+        }
+        catch (DocumentException e)
+        {
             e.printStackTrace();
         }
     }
-    
-    public void resetFont()
+
+    public void addChunk(ChunkHolder c)
     {
-        this.font = new Font(bf, DEFAULT_FONT_SIZE);
-        this.font.setStyle(Font.NORMAL);
+        chunks.add(c);
+    }
+
+    public Collection<ChunkHolder> getChunks()
+    {
+        return Collections.unmodifiableCollection(chunks);
+    }
+
+    public static class ChunkHolder
+    {
+        private Chunk chunk;
+        private boolean createNewParagraph;
+        private boolean createNewMultiColumnText;
+        private PdfTextType pdfTextType;
+
+        
+
+        public ChunkHolder(Chunk chunk, boolean createNewParagraph, boolean createNewMultiColumnText, PdfTextType pdfTextType)
+        {
+            this.chunk = chunk;
+            this.createNewParagraph = createNewParagraph;
+            this.createNewMultiColumnText = createNewMultiColumnText;
+            this.pdfTextType = pdfTextType;
+        }
+
+        public Chunk getChunk()
+        {
+            return chunk;
+        }
+
+        
+
+        public boolean isCreateNewParagraph()
+        {
+            return createNewParagraph;
+        }
+
+        public boolean isCreateNewMultiColumnText()
+        {
+            return createNewMultiColumnText;
+        }
+
+        public PdfTextType getPdfTextType()
+        {
+            return pdfTextType;
+        }
+
+    }
+
+    public enum PdfTextType {
+        StrongEmphasis, SoftLineBreak, H1, H2, PARAGRAPH, NO_MORE_TEXT, Emphasis;
     }
 
 }

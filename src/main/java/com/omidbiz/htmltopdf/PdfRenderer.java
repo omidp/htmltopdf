@@ -1,10 +1,15 @@
 package com.omidbiz.htmltopdf;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+
 import org.commonmark.internal.renderer.NodeRendererMap;
 import org.commonmark.node.Node;
 import org.commonmark.renderer.Renderer;
 import org.commonmark.renderer.html.HtmlRenderer.Builder;
 import org.commonmark.renderer.html.HtmlWriter;
+
+import com.lowagie.text.DocumentException;
 
 public class PdfRenderer implements Renderer
 {
@@ -17,8 +22,17 @@ public class PdfRenderer implements Renderer
     @Override
     public void render(Node node, Appendable output)
     {
-        CorePdfNodeRenderer r = new CorePdfNodeRenderer();
-        r.render(node);
+        CorePdfNodeRenderer r;
+        try
+        {
+            r = new CorePdfNodeRenderer();
+            r.render(node);
+        }
+        catch (URISyntaxException | DocumentException | IOException e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         
     }
 
