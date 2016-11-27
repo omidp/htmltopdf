@@ -1,13 +1,23 @@
 package com.omidbiz.htmltopdf;
 
+import java.awt.Color;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 
+import org.commonmark.ext.gfm.tables.TableBlock;
+import org.commonmark.ext.gfm.tables.TableBody;
+import org.commonmark.ext.gfm.tables.TableCell;
+import org.commonmark.ext.gfm.tables.TableHead;
+import org.commonmark.ext.gfm.tables.TableRow;
 import org.commonmark.node.AbstractVisitor;
 import org.commonmark.node.BlockQuote;
 import org.commonmark.node.BulletList;
@@ -31,6 +41,7 @@ import org.commonmark.node.StrongEmphasis;
 import org.commonmark.node.Text;
 import org.commonmark.node.ThematicBreak;
 import org.commonmark.renderer.NodeRenderer;
+import org.commonmark.renderer.html.HtmlNodeRendererContext;
 
 import com.lowagie.text.Anchor;
 import com.lowagie.text.Chunk;
@@ -43,27 +54,54 @@ import com.omidbiz.htmltopdf.PdfHolder.PdfTextType;
 public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
 {
 
-    private final PdfHolder holder;
-    private PdfTextType pdfTextType;
+    private PdfHolder holder;
+    private PdfTextType pdfTextType = PdfTextType.NO_MORE_TEXT;
+    private Link link;
+    protected final PdfNodeRendererContext context;
 
-    public CorePdfNodeRenderer() throws URISyntaxException, DocumentException, IOException
+    public CorePdfNodeRenderer(PdfNodeRendererContext context) 
     {
-        this.holder = new PdfHolder();
+        try
+        {
+            this.holder = new PdfHolder();
+        }
+        catch (URISyntaxException | DocumentException | IOException e)
+        {
+            e.printStackTrace();
+        }
+        this.context = context;
     }
 
     @Override
-    public Set<Class<? extends Node>> getNodeTypes()
-    {
-        return new HashSet<>(Arrays.asList(Document.class, Heading.class, Paragraph.class, BlockQuote.class, BulletList.class,
-                FencedCodeBlock.class, HtmlBlock.class, ThematicBreak.class, IndentedCodeBlock.class, Link.class, ListItem.class,
-                OrderedList.class, Image.class, Emphasis.class, StrongEmphasis.class, Text.class, Code.class, HtmlInline.class,
-                SoftLineBreak.class, HardLineBreak.class));
+    public Set<Class<? extends Node>> getNodeTypes() {
+        return new HashSet<>(Arrays.asList(
+                Document.class,
+                Heading.class,
+                Paragraph.class,
+                BlockQuote.class,
+                BulletList.class,
+                FencedCodeBlock.class,
+                HtmlBlock.class,
+                ThematicBreak.class,
+                IndentedCodeBlock.class,
+                Link.class,
+                ListItem.class,
+                OrderedList.class,
+                Image.class,
+                Emphasis.class,
+                StrongEmphasis.class,
+                Text.class,
+                Code.class,
+                HtmlInline.class,
+                SoftLineBreak.class,
+                HardLineBreak.class
+        ));
     }
 
     @Override
     public void render(Node node)
     {
-        node.accept(this);
+       node.accept(this);
     }
 
     @Override
@@ -81,9 +119,11 @@ public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
         while (iterator.hasNext())
         {
             PdfHolder.ChunkHolder ch = (PdfHolder.ChunkHolder) iterator.next();
+            Chunk c = ch.getChunk();
             if(ch.isCreateNewParagraph())
                 p.add(Chunk.NEWLINE);
-            p.add(ch.getChunk());
+            p.add(c);
+            
 
         }
 
@@ -158,13 +198,36 @@ public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
 
         if (pdfTextType.equals(PdfTextType.PARAGRAPH))
         {
-            this.holder.addChunk(new ChunkHolder(chunk, true, false, PdfTextType.StrongEmphasis));
+            this.holder.addChunk(new ChunkHolder(chunk, true, false, PdfTextType.PARAGRAPH));
             textTypeOnly = false;
         }
 
         if (pdfTextType.equals(PdfTextType.SoftLineBreak))
         {
-            this.holder.addChunk(new ChunkHolder(chunk, true, true, PdfTextType.StrongEmphasis));
+            this.holder.addChunk(new ChunkHolder(chunk, true, true, PdfTextType.SoftLineBreak));
+            textTypeOnly = false;
+        }
+        
+        if (pdfTextType.equals(PdfTextType.HardLineBreak))
+        {
+            this.holder.addChunk(new ChunkHolder(chunk, true, true, PdfTextType.HardLineBreak));
+            textTypeOnly = false;
+        }
+        
+        if (pdfTextType.equals(PdfTextType.LINK))
+        {
+            try
+            {
+                chunk.setAnchor(new URL(this.link.getDestination()));
+            }
+            catch (MalformedURLException e)
+            {
+                e.printStackTrace();
+            }
+            Font f = chunk.getFont();
+            f.setColor(Color.blue);
+            chunk.setFont(f);
+            this.holder.addChunk(new ChunkHolder(chunk, false, false, PdfTextType.LINK));
             textTypeOnly = false;
         }
 
@@ -182,15 +245,40 @@ public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
     {
         System.out.println("SOFTLINEBR");
         pdfTextType = PdfTextType.SoftLineBreak;
-        // visitChildren(softLineBreak);
+         visitChildren(softLineBreak);
     }
 
     @Override
     public void visit(HardLineBreak hardLineBreak)
     {
-
+        pdfTextType = PdfTextType.HardLineBreak;
         visitChildren(hardLineBreak);
         //
+    }
+
+    @Override
+    public void visit(Link link)
+    {
+        pdfTextType = PdfTextType.LINK;
+        this.link = link;
+        visitChildren(link);
+
+    }
+    
+    
+    @Override
+    public void visit(Image image) {
+       
+    }
+    
+    @Override
+    protected void visitChildren(Node parent) {
+        Node node = parent.getFirstChild();
+        while (node != null) {
+            Node next = node.getNext();
+            context.render(node);
+            node = next;
+        }
     }
 
 }

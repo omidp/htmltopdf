@@ -136,8 +136,6 @@ public class PdfHolder
         private boolean createNewMultiColumnText;
         private PdfTextType pdfTextType;
 
-        
-
         public ChunkHolder(Chunk chunk, boolean createNewParagraph, boolean createNewMultiColumnText, PdfTextType pdfTextType)
         {
             this.chunk = chunk;
@@ -150,8 +148,6 @@ public class PdfHolder
         {
             return chunk;
         }
-
-        
 
         public boolean isCreateNewParagraph()
         {
@@ -171,7 +167,7 @@ public class PdfHolder
     }
 
     public enum PdfTextType {
-        StrongEmphasis, SoftLineBreak, H1, H2, PARAGRAPH, NO_MORE_TEXT, Emphasis;
+        StrongEmphasis, SoftLineBreak, HardLineBreak, H1, H2, PARAGRAPH, NO_MORE_TEXT, Emphasis, LINK, Image, ;
     }
 
 }
