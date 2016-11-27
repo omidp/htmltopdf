@@ -12,14 +12,20 @@ import org.commonmark.ext.gfm.tables.TableRow;
 import org.commonmark.node.Node;
 import org.commonmark.renderer.NodeRenderer;
 
+import com.lowagie.text.pdf.PdfPTable;
+import com.lowagie.text.pdf.PdfTable;
+
 public class PdfTableNodeRenderer implements NodeRenderer
 {
 
     PdfNodeRendererContext context;
+    PdfHolder holder;
+    private PdfPTable table;
     
-    public PdfTableNodeRenderer(PdfNodeRendererContext context)
+    public PdfTableNodeRenderer(PdfNodeRendererContext context, PdfHolder holder)
     {
         this.context = context;
+        this.holder = holder;
     }
 
     @Override
@@ -36,17 +42,49 @@ public class PdfTableNodeRenderer implements NodeRenderer
     @Override
     public void render(Node node) {
         if (node instanceof TableBlock) {
-            System.out.println("ASDFSa");
-//            renderBlock((TableBlock) node);
+            renderBlock((TableBlock) node);
         } else if (node instanceof TableHead) {
-//            renderHead((TableHead) node);
+            renderHead((TableHead) node);
         } else if (node instanceof TableBody) {
-//            renderBody((TableBody) node);
+            renderBody((TableBody) node);
         } else if (node instanceof TableRow) {
-//            renderRow((TableRow) node);
+            renderRow((TableRow) node);
         } else if (node instanceof TableCell) {
-//            renderCell((TableCell) node);
+            renderCell((TableCell) node);
         }
+    }
+    
+    
+    private void renderBlock(TableBlock tableBlock) {
+        System.out.println("start TableBlock");
+        renderChildren(tableBlock);
+        System.out.println("end TableBlock");
+        //process here 
+    }
+    
+    private void renderHead(TableHead tableHead) {
+        System.out.println("start TableHead");
+        renderChildren(tableHead);
+        System.out.println("end TableHead");
+    }
+
+    private void renderBody(TableBody tableBody) {
+        System.out.println("start TableBody");
+        renderChildren(tableBody);
+        System.out.println("end TableBody");
+    }
+
+    private void renderRow(TableRow tableRow) {
+        System.out.println("start TableRow");
+        renderChildren(tableRow);
+        System.out.println("end TableRow");
+    }
+
+    private void renderCell(TableCell tableCell) {
+        System.out.println("start TableCell");
+        String tag = tableCell.isHeader() ? "th" : "td";
+        renderChildren(tableCell);
+        System.out.println("end TableCell");
     }
     
     private void renderChildren(Node parent) {

@@ -29,7 +29,7 @@ public class PdfTablesExtension implements Parser.ParserExtension, PdfRenderer.P
         rendererBuilder.nodeRendererFactory(new PdfNodeRendererFactory() {
             @Override
             public NodeRenderer create(PdfNodeRendererContext context) {
-                return new PdfTableNodeRenderer(context);
+                return new PdfTableNodeRenderer(context, context.getHolder());
             }
         });
     }

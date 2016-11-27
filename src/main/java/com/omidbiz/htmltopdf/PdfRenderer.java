@@ -1,5 +1,7 @@
 package com.omidbiz.htmltopdf;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,6 +13,8 @@ import org.commonmark.renderer.Renderer;
 import org.commonmark.renderer.html.AttributeProvider;
 import org.commonmark.renderer.html.AttributeProviderContext;
 import org.commonmark.renderer.html.AttributeProviderFactory;
+
+import com.lowagie.text.DocumentException;
 
 public class PdfRenderer implements Renderer
 {
@@ -26,7 +30,7 @@ public class PdfRenderer implements Renderer
         this.nodeRendererFactories.add(new PdfNodeRendererFactory() {
             @Override
             public NodeRenderer create(PdfNodeRendererContext context) {
-                return new CorePdfNodeRenderer(context);
+                return new CorePdfNodeRenderer(context, context.getHolder());
             }
         });
     }
@@ -96,10 +100,18 @@ public class PdfRenderer implements Renderer
     {
         private final List<AttributeProvider> attributeProviders;
         private final NodeRendererMap nodeRendererMap = new NodeRendererMap();
+        private PdfHolder holder;
 
         private RendererContext()
         {
-
+            try
+            {
+                this.holder = new PdfHolder();
+            }
+            catch (URISyntaxException | DocumentException | IOException e)
+            {
+                e.printStackTrace();
+            }
             attributeProviders = new ArrayList<>(attributeProviderFactories.size());
             for (AttributeProviderFactory attributeProviderFactory : attributeProviderFactories)
             {
@@ -119,6 +131,12 @@ public class PdfRenderer implements Renderer
         public void render(Node node)
         {
             nodeRendererMap.render(node);
+        }
+
+        @Override
+        public PdfHolder getHolder()
+        {
+            return this.holder;
         }
 
        

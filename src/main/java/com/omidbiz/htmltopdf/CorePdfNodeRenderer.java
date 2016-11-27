@@ -59,16 +59,9 @@ public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
     private Link link;
     protected final PdfNodeRendererContext context;
 
-    public CorePdfNodeRenderer(PdfNodeRendererContext context) 
+    public CorePdfNodeRenderer(PdfNodeRendererContext context, PdfHolder holder)
     {
-        try
-        {
-            this.holder = new PdfHolder();
-        }
-        catch (URISyntaxException | DocumentException | IOException e)
-        {
-            e.printStackTrace();
-        }
+        this.holder = holder;
         this.context = context;
     }
 
@@ -101,7 +94,7 @@ public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
     @Override
     public void render(Node node)
     {
-       node.accept(this);
+        node.accept(this);
     }
 
     @Override
@@ -120,10 +113,9 @@ public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
         {
             PdfHolder.ChunkHolder ch = (PdfHolder.ChunkHolder) iterator.next();
             Chunk c = ch.getChunk();
-            if(ch.isCreateNewParagraph())
+            if (ch.isCreateNewParagraph())
                 p.add(Chunk.NEWLINE);
             p.add(c);
-            
 
         }
 
@@ -207,13 +199,13 @@ public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
             this.holder.addChunk(new ChunkHolder(chunk, true, true, PdfTextType.SoftLineBreak));
             textTypeOnly = false;
         }
-        
+
         if (pdfTextType.equals(PdfTextType.HardLineBreak))
         {
             this.holder.addChunk(new ChunkHolder(chunk, true, true, PdfTextType.HardLineBreak));
             textTypeOnly = false;
         }
-        
+
         if (pdfTextType.equals(PdfTextType.LINK))
         {
             try
@@ -245,7 +237,7 @@ public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
     {
         System.out.println("SOFTLINEBR");
         pdfTextType = PdfTextType.SoftLineBreak;
-         visitChildren(softLineBreak);
+        visitChildren(softLineBreak);
     }
 
     @Override
@@ -264,17 +256,19 @@ public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
         visitChildren(link);
 
     }
-    
-    
+
     @Override
-    public void visit(Image image) {
-       
+    public void visit(Image image)
+    {
+
     }
-    
+
     @Override
-    protected void visitChildren(Node parent) {
+    protected void visitChildren(Node parent)
+    {
         Node node = parent.getFirstChild();
-        while (node != null) {
+        while (node != null)
+        {
             Node next = node.getNext();
             context.render(node);
             node = next;
