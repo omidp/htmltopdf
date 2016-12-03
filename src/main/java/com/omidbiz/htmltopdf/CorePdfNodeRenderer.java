@@ -46,55 +46,71 @@ import org.commonmark.renderer.html.HtmlNodeRendererContext;
 import com.lowagie.text.Anchor;
 import com.lowagie.text.Chunk;
 import com.lowagie.text.DocumentException;
+import com.lowagie.text.Element;
 import com.lowagie.text.Font;
+import com.lowagie.text.Rectangle;
 import com.lowagie.text.pdf.MultiColumnText;
+import com.lowagie.text.pdf.PdfContentByte;
+import com.lowagie.text.pdf.PdfPCell;
+import com.lowagie.text.pdf.PdfPCellEvent;
 import com.omidbiz.htmltopdf.PdfHolder.ChunkHolder;
 import com.omidbiz.htmltopdf.PdfHolder.PdfTextType;
 
-public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
+public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer, PdfPCellEvent
 {
 
-    private PdfHolder holder;
-    private PdfTextType pdfTextType = PdfTextType.NO_MORE_TEXT;
-    private Link link;
-    protected final PdfNodeRendererContext context;
-
-    public CorePdfNodeRenderer(PdfNodeRendererContext context, PdfHolder holder)
+    private ITextObject itextObject;
+    private PdfHolder pdfHolder;
+    
+    public CorePdfNodeRenderer()
     {
-        this.holder = holder;
-        this.context = context;
+        try
+        {
+            pdfHolder = new PdfHolder();
+        }
+        catch (URISyntaxException | DocumentException | IOException e)
+        {
+            e.printStackTrace();
+        }
     }
 
     @Override
-    public Set<Class<? extends Node>> getNodeTypes() {
-        return new HashSet<>(Arrays.asList(
-                Document.class,
-                Heading.class,
-                Paragraph.class,
-                BlockQuote.class,
-                BulletList.class,
-                FencedCodeBlock.class,
-                HtmlBlock.class,
-                ThematicBreak.class,
-                IndentedCodeBlock.class,
-                Link.class,
-                ListItem.class,
-                OrderedList.class,
-                Image.class,
-                Emphasis.class,
-                StrongEmphasis.class,
-                Text.class,
-                Code.class,
-                HtmlInline.class,
-                SoftLineBreak.class,
-                HardLineBreak.class
-        ));
+    public Set<Class<? extends Node>> getNodeTypes()
+    {
+        return new HashSet<>(Arrays.asList(Document.class, Heading.class, Paragraph.class, BlockQuote.class, BulletList.class,
+                FencedCodeBlock.class, HtmlBlock.class, ThematicBreak.class, IndentedCodeBlock.class, Link.class, ListItem.class,
+                OrderedList.class, Image.class, Emphasis.class, StrongEmphasis.class, Text.class, Code.class, HtmlInline.class,
+                SoftLineBreak.class, HardLineBreak.class, TableBlock.class, TableHead.class, TableBody.class, TableRow.class,
+                TableCell.class));
     }
 
     @Override
     public void render(Node node)
     {
-        node.accept(this);
+        if (node instanceof TableBlock)
+        {
+            renderBlock((TableBlock) node);
+        }
+        else if (node instanceof TableHead)
+        {
+            renderHead((TableHead) node);
+        }
+        else if (node instanceof TableBody)
+        {
+            renderBody((TableBody) node);
+        }
+        else if (node instanceof TableRow)
+        {
+            renderRow((TableRow) node);
+        }
+        else if (node instanceof TableCell)
+        {
+            renderCell((TableCell) node);
+        }
+        else
+        {
+            node.accept(this);
+        }
     }
 
     @Override
@@ -102,49 +118,39 @@ public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
     {
         // No rendering itself
         // begin processing
-        this.holder.open();
+        pdfHolder.open();
         visitChildren(document);
+        pdfHolder.close();
         // end of processing
-        Collection<ChunkHolder> chunks = this.holder.getChunks();
-        Iterator<ChunkHolder> iterator = chunks.iterator();
-        MultiColumnText mt = this.holder.getMultiColumnText();
-        com.lowagie.text.Paragraph p = this.holder.getParagraph();
-        while (iterator.hasNext())
-        {
-            PdfHolder.ChunkHolder ch = (PdfHolder.ChunkHolder) iterator.next();
-            Chunk c = ch.getChunk();
-            if (ch.isCreateNewParagraph())
-                p.add(Chunk.NEWLINE);
-            p.add(c);
-
-        }
-
-        try
-        {
-            mt.addElement(p);
-            this.holder.addToDocument(mt);
-        }
-        catch (DocumentException e)
-        {
-            e.printStackTrace();
-        }
-        this.holder.close();
     }
 
     @Override
     public void visit(Heading heading)
     {
         int level = heading.getLevel();
-        this.pdfTextType = PdfTextType.H1;
+        itextObject = new ITextHeader();
+        itextObject.createITextObject(heading);
         visitChildren(heading);
+        Object elm = itextObject.getITextObject();
+        MultiColumnText mt = pdfHolder.addToColumnText((Element) elm);
+        pdfHolder.addToDocument(mt);
+        reset();
+    }
+    
+    private void reset()
+    {
+        itextObject = null;
     }
 
     @Override
     public void visit(Paragraph paragraph)
     {
         System.out.println("PARAGRAPH");
-        pdfTextType = PdfTextType.PARAGRAPH;
+        itextObject = new ITextParagraph(paragraph);        
         visitChildren(paragraph);
+        Object elm = itextObject.getITextObject();
+        MultiColumnText mt = pdfHolder.addToColumnText((Element) elm);
+        pdfHolder.addToDocument(mt);
     }
 
     @Override
@@ -157,78 +163,22 @@ public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
     public void visit(StrongEmphasis strongEmphasis)
     {
         System.out.println("StrongEmphasis");
-        pdfTextType = PdfTextType.StrongEmphasis;
+        //TODO : noway itextobject became null
+        itextObject.createITextObject(strongEmphasis);
         visitChildren(strongEmphasis);
-
+        com.lowagie.text.Paragraph p = (com.lowagie.text.Paragraph) itextObject.getITextObject();
+        p.setFont(pdfHolder.getFont());
     }
+    
+    
 
     @Override
     public void visit(Text text)
     {
         System.out.println("text");
         System.out.println(text.getLiteral());
-        Chunk chunk = this.holder.getChunk();
-        chunk.append(text.getLiteral());
-        boolean textTypeOnly = true;
-        if (pdfTextType.equals(PdfTextType.H1))
-        {
-            Font font = this.holder.getFont();
-            font.setStyle(Font.BOLD);
-            chunk.setFont(font);
-            this.holder.addChunk(new ChunkHolder(chunk, true, true, PdfTextType.H1));
-            textTypeOnly = false;
-        }
-
-        if (pdfTextType.equals(PdfTextType.StrongEmphasis))
-        {
-            Font font = this.holder.getFont();
-            font.setStyle(Font.BOLD);
-            chunk.setFont(font);
-            this.holder.addChunk(new ChunkHolder(chunk, false, false, PdfTextType.StrongEmphasis));
-            textTypeOnly = false;
-        }
-
-        if (pdfTextType.equals(PdfTextType.PARAGRAPH))
-        {
-            this.holder.addChunk(new ChunkHolder(chunk, true, false, PdfTextType.PARAGRAPH));
-            textTypeOnly = false;
-        }
-
-        if (pdfTextType.equals(PdfTextType.SoftLineBreak))
-        {
-            this.holder.addChunk(new ChunkHolder(chunk, true, true, PdfTextType.SoftLineBreak));
-            textTypeOnly = false;
-        }
-
-        if (pdfTextType.equals(PdfTextType.HardLineBreak))
-        {
-            this.holder.addChunk(new ChunkHolder(chunk, true, true, PdfTextType.HardLineBreak));
-            textTypeOnly = false;
-        }
-
-        if (pdfTextType.equals(PdfTextType.LINK))
-        {
-            try
-            {
-                chunk.setAnchor(new URL(this.link.getDestination()));
-            }
-            catch (MalformedURLException e)
-            {
-                e.printStackTrace();
-            }
-            Font f = chunk.getFont();
-            f.setColor(Color.blue);
-            chunk.setFont(f);
-            this.holder.addChunk(new ChunkHolder(chunk, false, false, PdfTextType.LINK));
-            textTypeOnly = false;
-        }
-
-        if (textTypeOnly)
-        {
-            this.holder.addChunk(new ChunkHolder(chunk, false, false, PdfTextType.NO_MORE_TEXT));
-        }
-
-        pdfTextType = PdfTextType.NO_MORE_TEXT;
+        if(itextObject != null)
+            itextObject.handleAdd(text.getLiteral());
 
     }
 
@@ -236,14 +186,12 @@ public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
     public void visit(SoftLineBreak softLineBreak)
     {
         System.out.println("SOFTLINEBR");
-        pdfTextType = PdfTextType.SoftLineBreak;
         visitChildren(softLineBreak);
     }
 
     @Override
     public void visit(HardLineBreak hardLineBreak)
     {
-        pdfTextType = PdfTextType.HardLineBreak;
         visitChildren(hardLineBreak);
         //
     }
@@ -251,10 +199,13 @@ public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
     @Override
     public void visit(Link link)
     {
-        pdfTextType = PdfTextType.LINK;
-        this.link = link;
+        itextObject = new ITextLink();
+        itextObject.createITextObject(link);
         visitChildren(link);
-
+        Object elm = itextObject.getITextObject();
+        MultiColumnText mt = pdfHolder.addToColumnText((Element) elm);
+        pdfHolder.addToDocument(mt);
+        itextObject = null;
     }
 
     @Override
@@ -262,15 +213,55 @@ public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
     {
 
     }
+    
+    private void renderBlock(TableBlock tableBlock) {
+        System.out.println("start TableBlock");
+        visitChildren(tableBlock);
+        System.out.println("end TableBlock");
+        //process here 
+    }
+    
+    private void renderHead(TableHead tableHead) {
+        System.out.println("start TableHead");
+        visitChildren(tableHead);
+        System.out.println("end TableHead");
+    }
 
+    private void renderBody(TableBody tableBody) {
+        System.out.println("start TableBody");
+        visitChildren(tableBody);
+        System.out.println("end TableBody");
+    }
+
+    private void renderRow(TableRow tableRow) {
+        System.out.println("start TableRow");
+        visitChildren(tableRow);
+        System.out.println("end TableRow");
+    }
+
+    private void renderCell(TableCell tableCell) {
+        System.out.println("start TableCell");
+        String tag = tableCell.isHeader() ? "th" : "td";
+        visitChildren(tableCell);
+        System.out.println("end TableCell");
+    }
+
+    @Override
+    public void cellLayout(PdfPCell cell, Rectangle position, PdfContentByte[] canvases)
+    {
+        System.out.println("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSs");
+    }
+    
     @Override
     protected void visitChildren(Node parent)
     {
         Node node = parent.getFirstChild();
-        while (node != null)
-        {
+        while (node != null) {
+            // A subclass of this visitor might modify the node, resulting in getNext returning a different node or no
+            // node after visiting it. So get the next node before visiting.
             Node next = node.getNext();
-            context.render(node);
+            render(node);
+//            node.accept(this);
             node = next;
         }
     }

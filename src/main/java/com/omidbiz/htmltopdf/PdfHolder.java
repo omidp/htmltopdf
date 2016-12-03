@@ -34,7 +34,7 @@ public class PdfHolder
 
     private final Document document;
     private final PdfWriter pdfWriter;
-    private final BaseFont bf;
+    private static BaseFont bf;
     private MultiColumnText multiColumnText;
     private List<ChunkHolder> chunks = new ArrayList<>(0);
 
@@ -58,7 +58,7 @@ public class PdfHolder
         document.close();
     }
 
-    public Font getFont()
+    public static Font getFont()
     {
         return new Font(bf, DEFAULT_FONT_SIZE);
     }
@@ -76,7 +76,7 @@ public class PdfHolder
         return p;
     }
 
-    public Chunk getChunk()
+    public static Chunk getChunk()
     {
         Chunk c = new Chunk();
         c.setFont(getFont());
@@ -167,7 +167,7 @@ public class PdfHolder
     }
 
     public enum PdfTextType {
-        StrongEmphasis, SoftLineBreak, HardLineBreak, H1, H2, PARAGRAPH, NO_MORE_TEXT, Emphasis, LINK, Image, ;
+        StrongEmphasis, SoftLineBreak, HardLineBreak, H1, H2, PARAGRAPH, NO_MORE_TEXT, Emphasis, LINK, Image, CELL ;
     }
 
 }

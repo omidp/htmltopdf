@@ -20,8 +20,8 @@ public class CommonPdf
     public static void main(String[] args) throws FileNotFoundException, IOException
     {
         // List<Extension> extensions = Arrays.asList(TablesExtension.create());
-        List<Extension> extensions = Arrays.asList(PdfTablesExtension.create());
-        Parser parser = Parser.builder().extensions(extensions).build();
+        PdfRenderer pr = new PdfRenderer(new File("/home/omidp/1.pdf"));        
+        Parser parser = Parser.builder().extensions(Arrays.asList(pr)).build();
         StringBuffer sb = new StringBuffer();
         try (BufferedReader br = new BufferedReader(new FileReader(new File("/home/omidp/temp/test.md"))))
         {
@@ -36,10 +36,9 @@ public class CommonPdf
         Node document = parser.parse(sb.toString());
         // TextContentRenderer tr = TextContentRenderer.builder().build();
         // System.out.println(tr.render(document));
-        // HtmlRenderer renderer =
-        // HtmlRenderer.builder().extensions(extensions).build();
+//         HtmlRenderer renderer =
+//         HtmlRenderer.builder().extensions(extensions).build();
         // System.out.println(renderer.render(document));
-        PdfRenderer pr = PdfRenderer.builder().extensions(extensions).build();
         System.out.println(pr.render(document));
 
     }
