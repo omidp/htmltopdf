@@ -61,7 +61,7 @@ public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
 
     private ITextObject itextObject;
     private PdfHolder pdfHolder;
-    
+
     public CorePdfNodeRenderer()
     {
         try
@@ -134,23 +134,27 @@ public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
         Object elm = itextObject.getITextObject();
         MultiColumnText mt = pdfHolder.addToColumnText((Element) elm);
         pdfHolder.addToDocument(mt);
-        reset();
     }
-    
-    private void reset()
-    {
-        itextObject = null;
-    }
+
+     private void reset()
+     {
+         itextObject = null;
+     }
 
     @Override
     public void visit(Paragraph paragraph)
     {
         System.out.println("PARAGRAPH");
-        itextObject = new ITextParagraph(paragraph);        
+        itextObject = new ITextParagraph(paragraph);
+        itextObject.createITextObject(paragraph);
         visitChildren(paragraph);
-        Object elm = itextObject.getITextObject();
-        MultiColumnText mt = pdfHolder.addToColumnText((Element) elm);
-        pdfHolder.addToDocument(mt);
+        // if already addded itext object is null
+        if (itextObject != null)
+        {
+            Object elm = itextObject.getITextObject();
+            MultiColumnText mt = pdfHolder.addToColumnText((Element) elm);
+            pdfHolder.addToDocument(mt);
+        }
     }
 
     @Override
@@ -163,22 +167,21 @@ public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
     public void visit(StrongEmphasis strongEmphasis)
     {
         System.out.println("StrongEmphasis");
-        //TODO : noway itextobject became null
+        // TODO : noway itextobject became null
         itextObject.createITextObject(strongEmphasis);
         visitChildren(strongEmphasis);
+        // if already added
         com.lowagie.text.Paragraph p = (com.lowagie.text.Paragraph) itextObject.getITextObject();
         p.setFont(pdfHolder.getFont());
     }
-    
-    
 
     @Override
     public void visit(Text text)
     {
         System.out.println("text");
         System.out.println(text.getLiteral());
-        if(itextObject != null)
-            itextObject.handleAdd(text.getLiteral());
+        if (itextObject != null)
+            itextObject.handleTextAdd(text.getLiteral());
 
     }
 
@@ -202,10 +205,7 @@ public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
         itextObject = new ITextLink();
         itextObject.createITextObject(link);
         visitChildren(link);
-        Object elm = itextObject.getITextObject();
-        MultiColumnText mt = pdfHolder.addToColumnText((Element) elm);
-        pdfHolder.addToDocument(mt);
-        itextObject = null;
+
     }
 
     @Override
@@ -213,33 +213,39 @@ public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
     {
 
     }
-    
-    private void renderBlock(TableBlock tableBlock) {
+
+    private void renderBlock(TableBlock tableBlock)
+    {
         System.out.println("start TableBlock");
         visitChildren(tableBlock);
         System.out.println("end TableBlock");
-        //process here 
+        // process here
+
     }
-    
-    private void renderHead(TableHead tableHead) {
+
+    private void renderHead(TableHead tableHead)
+    {
         System.out.println("start TableHead");
         visitChildren(tableHead);
         System.out.println("end TableHead");
     }
 
-    private void renderBody(TableBody tableBody) {
+    private void renderBody(TableBody tableBody)
+    {
         System.out.println("start TableBody");
         visitChildren(tableBody);
         System.out.println("end TableBody");
     }
 
-    private void renderRow(TableRow tableRow) {
+    private void renderRow(TableRow tableRow)
+    {
         System.out.println("start TableRow");
         visitChildren(tableRow);
         System.out.println("end TableRow");
     }
 
-    private void renderCell(TableCell tableCell) {
+    private void renderCell(TableCell tableCell)
+    {
         System.out.println("start TableCell");
         String tag = tableCell.isHeader() ? "th" : "td";
         visitChildren(tableCell);
@@ -251,17 +257,19 @@ public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
     {
         System.out.println("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSs");
     }
-    
+
     @Override
     protected void visitChildren(Node parent)
     {
         Node node = parent.getFirstChild();
-        while (node != null) {
-            // A subclass of this visitor might modify the node, resulting in getNext returning a different node or no
+        while (node != null)
+        {
+            // A subclass of this visitor might modify the node, resulting in
+            // getNext returning a different node or no
             // node after visiting it. So get the next node before visiting.
             Node next = node.getNext();
             render(node);
-//            node.accept(this);
+            // node.accept(this);
             node = next;
         }
     }

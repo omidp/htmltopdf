@@ -40,9 +40,16 @@ public class ITextParagraph extends ITextObject
     }
 
     @Override
-    public void handleAdd(Object elm)
+    public void handleTextAdd(Object elm)
     {
         p.add(new Chunk((String) elm));
+    }
+
+    @Override
+    public void handleAdd(Object elm)
+    {
+        // TODO Auto-generated method stub
+        
     }
 
 }
