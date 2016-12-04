@@ -1,36 +1,33 @@
-package com.omidbiz.htmltopdf;
+package com.omidbiz.htmltopdf.pdf;
 
 import org.commonmark.node.Heading;
 import org.commonmark.node.Node;
-import org.commonmark.node.StrongEmphasis;
 
 import com.lowagie.text.Chunk;
 import com.lowagie.text.Element;
 import com.lowagie.text.Font;
 import com.lowagie.text.Paragraph;
+import com.omidbiz.htmltopdf.PdfHolder;
 
-public class ITextParagraph extends ITextObject
+public class ITextHeader extends ITextObject
 {
 
-    org.commonmark.node.Paragraph header;
+    Heading header;
     Paragraph p;
-    private Font font;
 
-    public ITextParagraph(org.commonmark.node.Paragraph header)
+    public ITextHeader()
     {
-        this.header = header;
-        this.p = new Paragraph();
-        this.font = PdfHolder.getFont();
-        p.setFont(font);
-        p.setAlignment(Element.ALIGN_LEFT);
     }
 
     @Override
     public void createITextObject(Node node)
     {
-         if(node instanceof StrongEmphasis)
-             font.setStyle(Font.BOLD);
-         p.setFont(font);
+        this.header = (Heading) node;
+        p = new Paragraph();
+        Font font = PdfHolder.getFont();
+        font.setStyle(Font.BOLD);
+        p.setFont(font);
+        p.setAlignment(Element.ALIGN_LEFT);
     }
 
     @Override

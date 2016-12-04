@@ -1,4 +1,4 @@
-package com.omidbiz.htmltopdf;
+package com.omidbiz.htmltopdf.pdf;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -17,33 +17,14 @@ import com.lowagie.text.pdf.PdfPCellEvent;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfPTableEvent;
 import com.lowagie.text.pdf.PdfWriter;
+import com.omidbiz.htmltopdf.PdfHolder;
 
 public class ITextTest
 {
 
     public static void main(String[] args) throws URISyntaxException, DocumentException, IOException
     {
-        PdfHolder ph = new PdfHolder();
-        ph.open();
-        PdfPTable table = new PdfPTable(2);
-        table.setTableEvent(new MyTblEvt());
-        table.setRunDirection(PdfWriter.RUN_DIRECTION_RTL);
-        table.setWidthPercentage(100);
-        PdfPCell cell = new PdfPCell();
-        Chunk chunk = new Chunk("منیبتلنبیتمنتیسمتبنمسیتبمنستیمبنتسمن"
-                + "نسیتبسی منبتیسمنملیس \n"
-                + " بنیستلمیسب \n"
-                + " ");
-        chunk.setFont(ph.getFont());
-        //
-        Paragraph para = new Paragraph(chunk);
-        para.setAlignment(Element.ALIGN_LEFT);
-        cell.addElement(para);
-        cell.setCellEvent(new MyCellEvt());
-        table.addCell(cell);
-        table.addCell(cell);        
-        ph.addToDocument(table);
-        ph.close();
+       
     }
     
     
@@ -53,7 +34,7 @@ public class ITextTest
         @Override
         public void tableLayout(PdfPTable table, float[][] widths, float[] heights, int headerRows, int rowStart, PdfContentByte[] canvases)
         {
-            System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+            System.out.println("tableLayout event");
         }
         
     }

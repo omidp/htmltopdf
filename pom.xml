@@ -29,11 +29,6 @@
 			<version>0.7.1</version>
 		</dependency>
 
-		<dependency>
-			<groupId>io.reactivex</groupId>
-			<artifactId>rxjava</artifactId>
-			<version>1.1.6</version>
-		</dependency>
 
 		<dependency>
 			<groupId>com.atlassian.commonmark</groupId>
@@ -42,18 +37,18 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.pegdown</groupId>
-			<artifactId>pegdown</artifactId>
-			<version>1.6.0</version>
-		</dependency>
-		<dependency>
 			<groupId>com.lowagie</groupId>
 			<artifactId>itext</artifactId>
 			<version>2.1.7</version>
 		</dependency>
 
+		<!-- <dependency> <groupId>io.reactivex</groupId> <artifactId>rxjava</artifactId> 
+			<version>1.1.6</version> </dependency> <dependency> <groupId>org.pegdown</groupId> 
+			<artifactId>pegdown</artifactId> <version>1.6.0</version> </dependency> -->
+
+
+		<!-- ALWAYS required. -->
 		<dependency>
-			<!-- ALWAYS required. -->
 			<groupId>com.openhtmltopdf</groupId>
 			<artifactId>openhtmltopdf-core</artifactId>
 			<version>${openhtml.version}</version>
@@ -96,16 +91,16 @@
 		</dependency>
 	</dependencies>
 	<build>
-		    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.6.0</version>
-        <configuration>
-          <source>1.7</source>
-          <target>1.7</target>
-        </configuration>
-      </plugin>
-    </plugins>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.6.0</version>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
+			</plugin>
+		</plugins>
 	</build>
 </project>

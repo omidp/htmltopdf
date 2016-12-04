@@ -55,23 +55,24 @@ import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPCellEvent;
 import com.omidbiz.htmltopdf.PdfHolder.ChunkHolder;
 import com.omidbiz.htmltopdf.PdfHolder.PdfTextType;
+import com.omidbiz.htmltopdf.pdf.ITextHeader;
+import com.omidbiz.htmltopdf.pdf.ITextLink;
+import com.omidbiz.htmltopdf.pdf.ITextObject;
+import com.omidbiz.htmltopdf.pdf.ITextParagraph;
 
+/**
+ * @author Omid Pourhadi
+ *
+ */
 public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer, PdfPCellEvent
 {
 
     private ITextObject itextObject;
     private PdfHolder pdfHolder;
 
-    public CorePdfNodeRenderer()
+    public CorePdfNodeRenderer(PdfHolder pdfHolder)
     {
-        try
-        {
-            pdfHolder = new PdfHolder();
-        }
-        catch (URISyntaxException | DocumentException | IOException e)
-        {
-            e.printStackTrace();
-        }
+        this.pdfHolder = pdfHolder;
     }
 
     @Override

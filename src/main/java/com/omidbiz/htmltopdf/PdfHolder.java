@@ -34,17 +34,29 @@ public class PdfHolder
 
     private final Document document;
     private final PdfWriter pdfWriter;
-    private static BaseFont bf;
+    private static Font defaultFont;
     private MultiColumnText multiColumnText;
     private List<ChunkHolder> chunks = new ArrayList<>(0);
 
-    public PdfHolder() throws URISyntaxException, DocumentException, IOException
+    static
+    {
+        try
+        {
+            Path path = Paths.get(PdfHolder.class.getResource("/tahoma.ttf").toURI());
+            BaseFont bf = BaseFont.createFont(path.toFile().getAbsolutePath(), BaseFont.IDENTITY_H, true);
+            defaultFont = new Font(bf, DEFAULT_FONT_SIZE);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    public PdfHolder(File pdfFile) throws URISyntaxException, DocumentException, IOException
     {
         document = new Document();
 
-        Path path = Paths.get(ToPdfSerializer.class.getResource("/tahoma.ttf").toURI());
-        bf = BaseFont.createFont(path.toFile().getAbsolutePath(), BaseFont.IDENTITY_H, true);
-        pdfWriter = PdfWriter.getInstance(document, new FileOutputStream(new File("/home/omidp/1.pdf")));
+        pdfWriter = PdfWriter.getInstance(document, new FileOutputStream(pdfFile));
         pdfWriter.setRunDirection(PdfWriter.RUN_DIRECTION_RTL);
     }
 
@@ -60,7 +72,7 @@ public class PdfHolder
 
     public static Font getFont()
     {
-        return new Font(bf, DEFAULT_FONT_SIZE);
+        return defaultFont;
     }
 
     public PdfWriter getPdfWriter()
@@ -76,10 +88,10 @@ public class PdfHolder
         return p;
     }
 
-    public static Chunk getChunk()
+    public Chunk getChunk()
     {
         Chunk c = new Chunk();
-        c.setFont(getFont());
+        c.setFont(this.defaultFont);
         return c;
     }
 
@@ -167,7 +179,7 @@ public class PdfHolder
     }
 
     public enum PdfTextType {
-        StrongEmphasis, SoftLineBreak, HardLineBreak, H1, H2, PARAGRAPH, NO_MORE_TEXT, Emphasis, LINK, Image, CELL ;
+        StrongEmphasis, SoftLineBreak, HardLineBreak, H1, H2, PARAGRAPH, NO_MORE_TEXT, Emphasis, LINK, Image, CELL;
     }
 
 }

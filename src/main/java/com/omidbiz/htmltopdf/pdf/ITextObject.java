@@ -1,4 +1,4 @@
-package com.omidbiz.htmltopdf;
+package com.omidbiz.htmltopdf.pdf;
 
 import org.commonmark.node.Node;
 
