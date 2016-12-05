@@ -72,7 +72,7 @@ public class PdfHolder
 
     public static Font getFont()
     {
-        return defaultFont;
+        return new Font(defaultFont);
     }
 
     public PdfWriter getPdfWriter()

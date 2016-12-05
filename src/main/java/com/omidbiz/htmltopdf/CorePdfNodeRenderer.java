@@ -5,11 +5,13 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -48,17 +50,23 @@ import com.lowagie.text.Chunk;
 import com.lowagie.text.DocumentException;
 import com.lowagie.text.Element;
 import com.lowagie.text.Font;
+import com.lowagie.text.Phrase;
 import com.lowagie.text.Rectangle;
 import com.lowagie.text.pdf.MultiColumnText;
 import com.lowagie.text.pdf.PdfContentByte;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPCellEvent;
+import com.lowagie.text.pdf.PdfPTable;
+import com.lowagie.text.pdf.PdfWriter;
 import com.omidbiz.htmltopdf.PdfHolder.ChunkHolder;
 import com.omidbiz.htmltopdf.PdfHolder.PdfTextType;
 import com.omidbiz.htmltopdf.pdf.ITextHeader;
 import com.omidbiz.htmltopdf.pdf.ITextLink;
+import com.omidbiz.htmltopdf.pdf.ITextNewLine;
 import com.omidbiz.htmltopdf.pdf.ITextObject;
 import com.omidbiz.htmltopdf.pdf.ITextParagraph;
+import com.omidbiz.htmltopdf.pdf.ITextTable;
+import com.omidbiz.htmltopdf.pdf.ITextTable.ITextTableHolder;
 
 /**
  * @author Omid Pourhadi
@@ -196,7 +204,13 @@ public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
     @Override
     public void visit(HardLineBreak hardLineBreak)
     {
+        System.out.println("HARDLINE");        
         visitChildren(hardLineBreak);
+        itextObject = new ITextNewLine();
+        itextObject.createITextObject(hardLineBreak);
+        com.lowagie.text.Paragraph newLine = (com.lowagie.text.Paragraph) itextObject.getITextObject();
+        pdfHolder.addToDocument(newLine);
+        reset();
         //
     }
 
@@ -218,10 +232,38 @@ public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
     private void renderBlock(TableBlock tableBlock)
     {
         System.out.println("start TableBlock");
-        visitChildren(tableBlock);
+        itextObject = new ITextTable();
+        visitChildren(tableBlock);        
         System.out.println("end TableBlock");
         // process here
-
+        ITextTableHolder tableHolder = (ITextTableHolder) itextObject.getITextObject();
+        List<TableCell> cells = new ArrayList<>(tableHolder.getCells());
+        List<TableCell> headerCells = new ArrayList<>();
+        for (TableCell tableCell : tableHolder.getCells())
+        {
+            if(tableCell.isHeader())
+            {
+                headerCells.add(tableCell);
+                cells.remove(tableCell);
+            }
+        }
+        int numberOfColumns = headerCells.size() == 0 ? cells.size(): headerCells.size();
+        PdfPTable pdfTable = new PdfPTable(numberOfColumns);
+        pdfTable.setRunDirection(PdfWriter.RUN_DIRECTION_RTL);
+        pdfTable.setWidthPercentage(100);
+        //
+        List<Chunk> chunks = tableHolder.getChunks();
+        for (Chunk chunk : chunks)
+        {
+            PdfPCell cell = new PdfPCell();
+            com.lowagie.text.Paragraph para = new com.lowagie.text.Paragraph(chunk);
+            para.setAlignment(Element.ALIGN_LEFT);
+            cell.addElement(para);
+            cell.setCellEvent(this);
+            pdfTable.addCell(cell);
+        }
+        this.pdfHolder.addToDocument(new com.lowagie.text.Paragraph(Chunk.NEWLINE));
+        this.pdfHolder.addToDocument(pdfTable);
     }
 
     private void renderHead(TableHead tableHead)
@@ -247,6 +289,7 @@ public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
 
     private void renderCell(TableCell tableCell)
     {
+        itextObject.createITextObject(tableCell);
         System.out.println("start TableCell");
         String tag = tableCell.isHeader() ? "th" : "td";
         visitChildren(tableCell);
