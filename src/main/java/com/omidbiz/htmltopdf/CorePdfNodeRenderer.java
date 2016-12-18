@@ -62,6 +62,8 @@ import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
 import com.omidbiz.htmltopdf.PdfHolder.ChunkHolder;
 import com.omidbiz.htmltopdf.PdfHolder.PdfTextType;
+import com.omidbiz.htmltopdf.pdf.ITextBlockQuote;
+import com.omidbiz.htmltopdf.pdf.ITextCode;
 import com.omidbiz.htmltopdf.pdf.ITextHeader;
 import com.omidbiz.htmltopdf.pdf.ITextImage;
 import com.omidbiz.htmltopdf.pdf.ITextLink;
@@ -163,6 +165,7 @@ public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
         itextObject = new ITextParagraph(paragraph);
         itextObject.createITextObject(paragraph);
         visitChildren(paragraph);
+        System.out.println("END PARAGRAPH");
         // if already addded itext object is null
         if (itextObject != null)
         {
@@ -175,13 +178,16 @@ public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
     @Override
     public void visit(Emphasis emphasis)
     {
+        itextObject.createITextObject(emphasis);
         visitChildren(emphasis);
+        com.lowagie.text.Paragraph p = (com.lowagie.text.Paragraph) itextObject.getITextObject();
+        p.setFont(PdfHolder.getFont());
     }
 
     @Override
     public void visit(StrongEmphasis strongEmphasis)
     {
-        System.out.println("StrongEmphasis");
+        System.out.println("StrongEmphasis");        
         itextObject.createITextObject(strongEmphasis);
         visitChildren(strongEmphasis);
         com.lowagie.text.Paragraph p = (com.lowagie.text.Paragraph) itextObject.getITextObject();
@@ -314,6 +320,31 @@ public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
     public void cellLayout(PdfPCell cell, Rectangle position, PdfContentByte[] canvases)
     {
         System.out.println("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSs");
+    }
+    
+    @Override
+    public void visit(FencedCodeBlock fencedCodeBlock) {
+        System.out.println("FencedCodeBlock");
+        ITextObject itextCode = new ITextCode();
+        itextCode.createITextObject(fencedCodeBlock);
+        this.pdfHolder.addToDocument(new com.lowagie.text.Paragraph(Chunk.NEWLINE));
+        this.pdfHolder.addToDocument((PdfPTable)itextCode.getITextObject());
+        visitChildren(fencedCodeBlock);
+    }
+    
+    @Override
+    public void visit(BulletList bulletList) {
+        visitChildren(bulletList);
+        System.out.println("BulletList");
+//        ITextObject b = new ITextBlockQuote();
+//        b.handleAdd(itextObject);
+        System.out.println("BulletList");
+    }
+    
+    @Override
+    public void visit(BlockQuote blockQuote) {
+        System.out.println("blockQuote");
+        visitChildren(blockQuote);
     }
 
     @Override

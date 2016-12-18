@@ -33,6 +33,11 @@ public class ITextParagraph extends ITextObject
     {
          if(node instanceof StrongEmphasis)
              font.setStyle(Font.BOLD);
+         if(node instanceof StrongEmphasis)
+         {
+             font.setStyle(Font.BOLD);
+             font.setSize(11);
+         }
          p.setFont(font);
     }
 
