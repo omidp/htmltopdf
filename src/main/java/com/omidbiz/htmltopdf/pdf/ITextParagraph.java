@@ -1,7 +1,9 @@
 package com.omidbiz.htmltopdf.pdf;
 
+import org.commonmark.node.HardLineBreak;
 import org.commonmark.node.Heading;
 import org.commonmark.node.Node;
+import org.commonmark.node.SoftLineBreak;
 import org.commonmark.node.StrongEmphasis;
 
 import com.lowagie.text.Chunk;
@@ -49,8 +51,15 @@ public class ITextParagraph extends ITextObject
     @Override
     public void handleAdd(Object elm)
     {
-        // TODO Auto-generated method stub
-        
+        if(elm instanceof HardLineBreak)
+        {
+            //HardLineBreak hlb = (HardLineBreak) elm;
+            p.add(Chunk.NEWLINE);
+        }
+        if(elm instanceof SoftLineBreak)
+        {
+            p.add(Chunk.NEWLINE);
+        }
     }
 
 }

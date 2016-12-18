@@ -182,12 +182,10 @@ public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
     public void visit(StrongEmphasis strongEmphasis)
     {
         System.out.println("StrongEmphasis");
-        // TODO : noway itextobject became null
         itextObject.createITextObject(strongEmphasis);
         visitChildren(strongEmphasis);
-        // if already added
         com.lowagie.text.Paragraph p = (com.lowagie.text.Paragraph) itextObject.getITextObject();
-        p.setFont(pdfHolder.getFont());
+        p.setFont(PdfHolder.getFont());
     }
 
     @Override
@@ -204,19 +202,23 @@ public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
     public void visit(SoftLineBreak softLineBreak)
     {
         System.out.println("SOFTLINEBR");
+        if(itextObject != null)
+            itextObject.handleAdd(softLineBreak);
         visitChildren(softLineBreak);
     }
 
     @Override
     public void visit(HardLineBreak hardLineBreak)
     {
-        System.out.println("HARDLINE");        
+        System.out.println("HARDLINE");             
+//        itextObject = new ITextNewLine();
+//        itextObject.createITextObject(hardLineBreak);
+//        com.lowagie.text.Paragraph newLine = (com.lowagie.text.Paragraph) itextObject.getITextObject();
+//        newLine.setFont(PdfHolder.getFont());
+//        pdfHolder.addToDocument(newLine);
+        if(itextObject != null)
+            itextObject.handleAdd(hardLineBreak);
         visitChildren(hardLineBreak);
-        itextObject = new ITextNewLine();
-        itextObject.createITextObject(hardLineBreak);
-        com.lowagie.text.Paragraph newLine = (com.lowagie.text.Paragraph) itextObject.getITextObject();
-        pdfHolder.addToDocument(newLine);
-        reset();
         //
     }
 
