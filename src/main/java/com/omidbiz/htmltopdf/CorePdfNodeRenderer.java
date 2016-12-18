@@ -54,6 +54,8 @@ import com.lowagie.text.Phrase;
 import com.lowagie.text.Rectangle;
 import com.lowagie.text.pdf.MultiColumnText;
 import com.lowagie.text.pdf.PdfContentByte;
+import com.lowagie.text.pdf.PdfDestination;
+import com.lowagie.text.pdf.PdfOutline;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPCellEvent;
 import com.lowagie.text.pdf.PdfPTable;
@@ -142,9 +144,11 @@ public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
         itextObject = new ITextHeader();
         itextObject.createITextObject(heading);
         visitChildren(heading);
-        Object elm = itextObject.getITextObject();
-        MultiColumnText mt = pdfHolder.addToColumnText((Element) elm);
+        Object elm = itextObject.getITextObject();        
+        MultiColumnText mt = pdfHolder.addToColumnText((Element) elm);        
         pdfHolder.addToDocument(mt);
+        //
+        itextObject.handleAdd(pdfHolder.getPdfWriter());
     }
 
      private void reset()

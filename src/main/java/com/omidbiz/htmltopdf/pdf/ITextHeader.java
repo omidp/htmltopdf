@@ -7,6 +7,9 @@ import com.lowagie.text.Chunk;
 import com.lowagie.text.Element;
 import com.lowagie.text.Font;
 import com.lowagie.text.Paragraph;
+import com.lowagie.text.pdf.PdfDestination;
+import com.lowagie.text.pdf.PdfOutline;
+import com.lowagie.text.pdf.PdfWriter;
 import com.omidbiz.htmltopdf.PdfHolder;
 
 public class ITextHeader extends ITextObject
@@ -45,8 +48,11 @@ public class ITextHeader extends ITextObject
     @Override
     public void handleAdd(Object elm)
     {
-        // TODO Auto-generated method stub
-        
+        if(this.header.getLevel() == 1)
+        {
+            PdfWriter writer = (PdfWriter) elm;
+            writer.getRootOutline().addKid(new PdfOutline(writer.getRootOutline(), new PdfDestination(PdfDestination.FITH), p));
+        }
     }
 
 }

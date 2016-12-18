@@ -19,6 +19,7 @@ import com.lowagie.text.Font;
 import com.lowagie.text.Paragraph;
 import com.lowagie.text.pdf.BaseFont;
 import com.lowagie.text.pdf.MultiColumnText;
+import com.lowagie.text.pdf.PdfOutline;
 import com.lowagie.text.pdf.PdfWriter;
 
 /**
@@ -36,6 +37,7 @@ public class PdfHolder
     private final PdfWriter pdfWriter;
     private static Font defaultFont;
     private MultiColumnText multiColumnText;
+    private PdfOutline rootOutline;
     private List<ChunkHolder> chunks = new ArrayList<>(0);
 
     static
@@ -58,11 +60,19 @@ public class PdfHolder
 
         pdfWriter = PdfWriter.getInstance(document, new FileOutputStream(pdfFile));
         pdfWriter.setRunDirection(PdfWriter.RUN_DIRECTION_RTL);
+        pdfWriter.setViewerPreferences(PdfWriter.PageModeUseOutlines);
+        //
     }
+
+//    public PdfOutline getRootOutline()
+//    {
+//        return rootOutline;
+//    }
 
     public void open()
     {
         document.open();
+        //rootOutline = pdfWriter.getRootOutline();
     }
 
     public void close()
