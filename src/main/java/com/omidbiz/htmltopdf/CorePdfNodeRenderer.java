@@ -61,6 +61,7 @@ import com.lowagie.text.pdf.PdfWriter;
 import com.omidbiz.htmltopdf.PdfHolder.ChunkHolder;
 import com.omidbiz.htmltopdf.PdfHolder.PdfTextType;
 import com.omidbiz.htmltopdf.pdf.ITextHeader;
+import com.omidbiz.htmltopdf.pdf.ITextImage;
 import com.omidbiz.htmltopdf.pdf.ITextLink;
 import com.omidbiz.htmltopdf.pdf.ITextNewLine;
 import com.omidbiz.htmltopdf.pdf.ITextObject;
@@ -137,6 +138,7 @@ public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
     public void visit(Heading heading)
     {
         int level = heading.getLevel();
+        System.out.println(level);
         itextObject = new ITextHeader();
         itextObject.createITextObject(heading);
         visitChildren(heading);
@@ -226,7 +228,13 @@ public class CorePdfNodeRenderer extends AbstractVisitor implements NodeRenderer
     @Override
     public void visit(Image image)
     {
-
+        System.out.println("IIIIIIIIIIIIIIIIII");
+        itextObject = new ITextImage();
+        itextObject.createITextObject(image);
+        com.lowagie.text.Image img = (com.lowagie.text.Image) itextObject.getITextObject();
+        pdfHolder.addToDocument(img);
+        visitChildren(image);
+        reset();
     }
 
     private void renderBlock(TableBlock tableBlock)
